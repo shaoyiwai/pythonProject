@@ -1,0 +1,65 @@
+import requests
+import re
+import jieba
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+cookies = {
+    'll': '^\\^118163^\\^',
+    'bid': 'KDKaw89e-IA',
+    '__utma': '30149280.1528988267.1672994195.1672994195.1672994195.1',
+    '__utmc': '30149280',
+    '__utmz': '30149280.1672994195.1.1.utmcsr=baidu^|utmccn=(organic)^|utmcmd=organic',
+    '__utmt': '1',
+    'dbcl2': '^\\^177707793:++Fm7YKF0DA^\\^',
+    'ck': 'Pp1M',
+    'ap_v': '0,6.0',
+    'push_noty_num': '0',
+    'push_doumail_num': '0',
+    '__utmv': '30149280.17770',
+    'frodotk_db': '^\\^792074838d5adf516b615d8aa8109df3^\\^',
+    '_pk_ref.100001.4cf6': '^%^5B^%^22^%^22^%^2C^%^22^%^22^%^2C1672994239^%^2C^%^22https^%^3A^%^2F^%^2Fwww.douban.com^%^2Fsearch^%^3Fsource^%^3Dsuggest^%^26q^%^3D^%^25E6^%^25B3^%^25B0^%^25E5^%^259D^%^25A6^%^25E5^%^25B0^%^25BC^%^25E5^%^2585^%^258B^%^25E5^%^258F^%^25B7^%^22^%^5D',
+    '_pk_ses.100001.4cf6': '*',
+    '__utmb': '223695111.0.10.1672994239',
+    '_vwo_uuid_v2': 'D8E8FC41FE997648A2C0EE3D1719BD371^|b72c9a5d57dbf96f579fb10ce3e54b21',
+    '_pk_id.100001.4cf6': '5bb7b042e7e7da85.1672994239.1.1672994574.1672994239.',
+}
+
+headers = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Pragma': 'no-cache',
+    'Referer': 'https://movie.douban.com/subject/1292722/',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+    'sec-ch-ua': '^\\^Google',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '^\\^Windows^\\^',
+}
+for i in range(0, 1):
+    response = requests.get(
+        'https://movie.douban.com/subject/1292722/comments?start=%d&limit=20&status=P&sort=new_score' % (i * 20),
+        headers=headers, cookies=cookies)
+    info = re.findall(r'<span class="short">(.*?)</span>', response.text)
+    info_str = str(info)
+    # 生成词云图
+    words = jieba.lcut(info_str)
+    newtxt = ''.join(words)
+    # 删除英文
+    newtxt = re.sub("[A-Za-z0-9\!\%\[\]\,\。]", "", newtxt)
+    # wordcloud = WordCloud(font_path="msyh.ttf").generate(newtxt)
+    wc = WordCloud(font_path="msyh.ttc",
+                   width=1000,
+                   height=700,
+                   background_color='white',
+                   max_words=100)
+    wc.generate(newtxt)
+    wc.to_file('中文词云图.jpg')
+    # print(type(info_str))
+    # print(*info, sep='\n')
