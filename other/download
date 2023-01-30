@@ -1,0 +1,22 @@
+#下载图片
+import requests
+from lxml import etree
+
+url = 'http://product.dangdang.com/29148702.html'
+headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/69.0.3497.81 Safari/537.36 Maxthon/5.3.8.2000 "
+    }
+aa = requests.get(url, headers=headers)
+#去除乱码
+message = aa.content.decode('gbk')
+content = etree.HTML(message)
+url_img=content.xpath('//*[@id="main-img-slider"]/li/a/img/@src')
+print(url_img)
+for i in url_img:
+    print(i)
+    node_data = requests.get(url=r'http:'+i, headers=headers).content
+    file_name=r'C:\Users\qchd\Desktop\text_img\\'+ i[-10:]
+    print(file_name)
+    with open(file_name, 'wb') as f:
+        f.write(node_data)
