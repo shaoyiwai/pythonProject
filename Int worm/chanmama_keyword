@@ -1,0 +1,80 @@
+#蝉妈妈抖音牛肉品类排名
+import json
+import re
+
+import requests
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+from openpyxl.workbook import Workbook
+
+wb = Workbook()
+ws = wb.active
+ws.append(['品牌', '标题', '价格', '佣金比例', '总销量', '直播销量', '视频销量', '关联达人', '关联直播', '关联视频',
+           '浏览量'])
+
+headers = {
+    'authority': 'api-service.chanmama.com',
+    'accept': 'application/json, text/plain, */*',
+    'accept-language': 'zh-CN,zh;q=0.9',
+    'cache-control': 'no-cache',
+    'content-type': 'application/json;charset=UTF-8',
+    'cookie': 'LOGIN-TOKEN-FORSNS=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6MTAwMDAsImFwcFZlcnNpb24iOiIiLCJleHBpcmVfdGltZSI6MTY3NTUzNzIwMCwiaWF0IjoxNjc0OTU4NjM4LCJpZCI6NTA5MjU4MSwicmsiOiJSalRJNyJ9.ooxv4Ycf83-tDa3UhTVZJKcLDGGB5S8Nrc87CN5oviY; CMM_A_C_ID=26238d1c-a045-11ed-968a-c2080eccc18a; Hm_lvt_1f19c27e7e3e3255a5c79248a7f4bdf1=1674958594,1675045436; beegosessionID=88dccebe6c6cca5ef0bd3b4f920bb0f0; Hm_lpvt_1f19c27e7e3e3255a5c79248a7f4bdf1=1675045515; Authorization-By-CAS=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOjEwMDAwLCJleHAiOjE2NzU1MzcyMDAsImlhdCI6MTY3NTA0NTUxNSwicmsiOiJjeFhhcyIsInVuaXF1ZV9pZCI6IlVTRVItQlZUNkk2UzBUWFE4LUZGMDA3TiJ9._Jm6B8SFuzQNXcmlnEmJ87BIkuF3KyNHdFjTZ-PdK1Q',
+    'origin': 'https://www.chanmama.com',
+    'pragma': 'no-cache',
+    'referer': 'https://www.chanmama.com/promotionRank?big_category=%E7%94%9F%E9%B2%9C%E8%94%AC%E6%9E%9C&first_category=%E8%82%89%2F%E8%9B%8B%2F%E7%A6%BD%E7%B1%BB&second_category=%E7%89%9B%E8%82%89%E7%B1%BB&keyword=',
+    'sec-ch-ua': '"Not?A_Brand";v="8", "Chromium";v="108", "Google Chrome";v="108"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"macOS"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    'x-client-id': '1378775368',
+}
+
+
+def get_data(data):
+    response = requests.post('https://api-service.chanmama.com/v2/product/search', headers=headers, data=data).json()
+    items = response['data']['list']
+    for item in items:
+        # 品牌
+        brand = item['brand']
+        # 标题
+        title = item['title']
+        # 价格
+        market_price = item['market_price']
+        # 佣金比例
+        tb_max_commission_rate = item['tb_max_commission_rate'] + '%'
+        # 总销量
+        duration_volume_text = item['duration_volume_text']
+        # 直播销量
+        duration_live_volume_text = item['duration_live_volume_text']
+        # 视频销量
+        duration_live_volume = item['duration_live_volume']
+        # 关联达人
+        duration_author_count = item['duration_author_count']
+        # 关联直播
+        duration_live_count = item['duration_live_count']
+        # 关联视频
+        duration_video_count = item['duration_video_count']
+        # 浏览量
+        duration_pv = item['duration_pv']
+        # 转化率
+        duration_product_rate = str(item['duration_product_rate']) + '%'
+        item = [brand, title, market_price, tb_max_commission_rate, duration_volume_text, duration_live_volume_text,
+                duration_live_volume, duration_author_count, duration_live_count, duration_video_count, duration_pv]
+        ws.append(item)
+        print(brand, title, market_price, tb_max_commission_rate, duration_volume_text, duration_live_volume_text,
+              duration_live_volume, duration_author_count, duration_live_count, duration_video_count, duration_pv)
+        wb.save(r'C:\Users\qchd\Desktop\牛肉品类.xlsx')
+
+
+if __name__ == '__main__':
+    for i in range(1, 21):
+        data = '{"keyword":"","keyword_type":"","page":1,"price":"","duration_author_count":"","size":50,"filter_coupon":0,"has_live":0,"has_video":0,"tb_max_commission_rate":"","day_pv_count":"","duration_volume":"","big_category":"\u751F\u9C9C\u852C\u679C","first_category":"\u8089/\u86CB/\u79BD\u7C7B","second_category":"\u725B\u8089\u7C7B","platform":"jinritemai","sort":"duration_volume","order_by":"desc","day_type":30,"most_volume":-1,"most_aweme_volume":0,"most_live_volume":0,"from":"detail"}'
+        data = json.loads(data)
+        data['page'] = i
+        data = json.dumps(data)
+        try:
+            get_data(data)
+        except Exception as e:
+            print(e)
