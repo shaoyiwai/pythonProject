@@ -1,19 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-@Time ： 2022/11/28 16:11
-@Auth ： 蔍鸣
-@File ：cv_demo.py
-@IDE ：PyCharm
-@Motto: 拔丝kite博
-"""
-
-
 from openpyxl import load_workbook
 import cv2 as cv
 from openpyxl.styles import PatternFill
 
 #
-image = cv.imread("./data/ikun.png", 1)
+image = cv.imread("./data/**.png", 1)
 B = image[:, :, 0]
 G = image[:, :, 1]
 R = image[:, :, 2]
@@ -41,11 +31,5 @@ for c in range(1, len(B[0])):
 
         fill = PatternFill(fill_type='solid', fgColor=RGB, bgColor="FFFFFF")
         sheet.cell(row=r, column=c).fill = fill
-"""
-"""
 wb.save(fileName)
-#
-# #
 print("\n==== I am great !! ========")
-
-
