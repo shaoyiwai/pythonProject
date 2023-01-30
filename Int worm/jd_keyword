@@ -1,0 +1,118 @@
+import re
+import time
+import requests
+from lxml import etree
+from openpyxl import Workbook
+
+wb = Workbook()
+ws = wb.active
+ws.append([
+    '标题',
+    '价格',
+    '店铺',
+    '商品ID',
+    '备注',
+    '详情页网址',
+    '商品图片网址',
+    '所有评论',
+    '视频晒单',
+    '好评',
+    '中评',
+    '差评',
+    '追评',
+    '好评率(%)',
+])
+
+
+headers = {
+    'authority': 'item.jd.com',
+    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'accept-language': 'zh-CN,zh;q=0.9',
+    'cookie': 'o2State=^{^%^22webp^%^22:true^%^2C^%^22avif^%^22:true^}; __jdu=16697973609861973430686; shshshfpa=9d0899d5-6388-329a-8609-770cd3216379-1669797362; shshshfpb=i1KgI8ce389g2fheB71juzg; shshshfp=a21c7946e2e731be7c41b3c56dbb5f26; ceshi3.com=000; TrackID=1VITAvIZ_ryd1wVw_VY7FpGMp3ExwjCN0QRL5TR2AOWe3f7YaI2LdtiswFhuKHMfFIOp9rJiMfP0S6B3UUXdjchG92IYwnlglFKVqWtnPuLc; pinId=b2Qpe3HzIGpkr-eEt_QcRg; unick=^%^E9^%^BB^%^9B^%^E7^%^8F^%^82-^%^E7^%^9B^%^B4^%^E6^%^92^%^AD; _tp=NndBTs^%^2Ff65e7U5S7H4H9NUnWHi^%^2FsHc4TmeMXgMrEAlXA^%^2F^%^2Fa9e37OHKtdmZmfOMkL; _pst=^%^E9^%^BB^%^9B^%^E7^%^8F^%^82-^%^E7^%^9B^%^B4^%^E6^%^92^%^AD; pin=mre10411178; __jda=76161171.16697973609861973430686.1669797361.1673316235.1673336988.45; __jdc=76161171; unpl=JF8EALxnNSttXElWABMLH0AXSVVTW1oBSh4KbmdSXQhQH1ACTlBOEUd7XlVdXxRKFx9vZhRUWVNPVQ4ZAysSEXtdVV9fD0oeBm5vNWRbWRgDDRMGHhd-SzMgDSB4PmkCbjBzVm1bS2QEKwIcFRhNVVJcWglDHgRvbwNWWFpKUwwcMhoiEENZZG5tDUsWAm5vAlVaWXtVNRkDGhcUSlpVXVo4AHkCImcCU1VeQ1IHHAMTGxdLVVJcWApKEApoVwRkXg; __jdv=76161171^|www.baidu.com^|t_1003608409_^|tuiguang^|5334985c639646808801f8d9e56dcd2f^|1673337029448; areaId=12; ipLoc-djd=12-988-0-0; PCSYCityID=CN_320000_320500_0; bjd.advert.popup=f05bb0ea43f1a0fa8d8d9d14d76b010b; cn=0; user-key=c1c6a858-177a-4acd-8474-282a1347cf3a; __jdb=76161171.7.16697973609861973430686^|45.1673336988; thor=805745CC2ADF4D5BBE9E9BB932844FC7784573B9B888B84A9C733C036183A37FC35442AC4A92D5FB73BAC7D0B47E9856E57EB2EC6EE106D26FF8561E98B012A476BB838E03164AA340D99C089548291951A5334BD715DE262BBC7C9370A793C85E27B1D330343CE29C70FE8CF24842DED54D7F4128C6178537006C52D903C2A4; 3AB9D23F7A4B3C9B=KBZSQCD3ILBEIUIP65WEUW5F7CYWMFZJTRKLEL2CATF5WYWZAG6NW6UMSBFIVLQFTHIH7L3SG343WFESIOQEFHD7HY',
+    'referer': 'https://list.jd.com/',
+    'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"macOS"',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'same-origin',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36',
+}
+
+def get_data(keyword, page):
+    list_url = f'https://search.jd.com/Search?keyword={keyword}&page={page}&enc=utf-8'
+    # list_url = f'https://search.jd.com/Search?keyword={keyword}&qrst=1&psort=3&wq=%E9%A5%AE%E7%94%A8%E6%B0%B4&stock=1&psort=3&page={page}'
+    # list_url = f'https://search.jd.com/search?keyword={keyword}&qrst=1&psort=3&stock=1&ev=exbrand_%E6%AC%A7%E8%8E%B1%E9%9B%85%5E&psort=3&pvid=428abed412974f4692c1305c9ad7023a&page={page}&s=61&click=0'
+
+    resp = requests.get(list_url, headers=headers)
+    # print(resp.text)
+    # 创建etree对象
+    tree = etree.HTML(resp.text)
+    # titles= tree.xpath('//div[@id="J_searchWrap"]//div[@class="gl-i-wrap"]//div[@class="p-name p-name-type-2"]//em')
+    # print(len(titles))
+    # for title in titles:
+    #     print(title.xpath('string(.)').strip())
+    lis = tree.xpath('//ul[@class="gl-warp clearfix"]/li')
+    for index, li in enumerate(lis):
+        title_r = li.xpath('.//div[@class="p-name p-name-type-2"]//em')
+        # print(title.xpath('string(.)').strip())
+        title = title_r[0].xpath('string(.)').strip()
+        title = title.replace('\n', '')
+        # print(title.replace('\n',''))
+        price = li.xpath('.//div[@class="p-price"]//i/text()')[0].strip()  # 价格
+
+        # print(price)
+        data_sku = li.xpath('./@data-sku')[0].strip()  # 商品唯一id
+        # print(data_sku)
+        # comment = li.xpath('.//div[@class="p-commit"]//a')  # 评论数
+        shop_name = li.xpath('.//div[@class="p-shop"]//a//text()')[0].strip()  # 商铺名字
+        # print(shop_name)
+        icons = li.xpath('.//div[@class="p-icons"]/i/text()')  # 备注
+        # comment = comment[0] if comment != [] else ''
+        icons_n = ''
+        for x in icons:
+            icons_n = icons_n + x.replace('\n', '')
+            icons_n = icons_n + ';'
+        # print(icons_n)
+        detail_url = li.xpath('.//div[@class="p-name p-name-type-2"]/a/@href')[0]  # 详情页网址
+        detail_url = 'https:' + detail_url
+        # print(re.findall(r'data-lazy-img="(.*?)"', resp.text)[1])
+        image_url = 'https:' + re.findall(r'data-lazy-img="(.*?)"', resp.text)[index]  # 图片网址
+
+        # print(detail_url)
+        # with open("cookies.txt", "r") as f:
+        #     headers['cookie'] = json.load(f)
+        comment_url = f'https://club.jd.com/comment/productCommentSummaries.action?referenceIds={data_sku}'
+        time.sleep(1)
+        comments = requests.get(comment_url, headers=headers).json()
+        # print(comments)
+        info = {}
+        commentscount = comments['CommentsCount'][0]
+        all_comments = commentscount['CommentCountStr']
+        videocount = commentscount['VideoCountStr']
+        poorcount = commentscount['PoorCountStr']
+        aftercount = commentscount['AfterCountStr']
+        goodcount = commentscount['GoodCountStr']
+        generalcount = commentscount['GeneralCountStr']
+        goodrate = commentscount['GoodRate'] * 100
+        item = [title, price, shop_name, data_sku, icons_n, detail_url, image_url, all_comments, videocount, goodcount,
+                generalcount, poorcount, aftercount, goodrate]
+        print(item)
+        ws.append(
+            [title, price, shop_name, data_sku, icons_n, detail_url, image_url, all_comments, videocount, goodcount,
+             generalcount, poorcount, aftercount, goodrate])
+        wb.save(r'C:\Users\qchd\PycharmProjects\pythonProject\data\source\jd.xlsx')
+
+
+if __name__ == '__main__':
+    # '晨光', '猫太子', '蒙马特', '天文', '齐心', '广博', '国誉', '百乐', '斑马', '三菱', '科密'
+    keyword_list=['筋膜枪','跳绳']
+    # try:
+    for keyword in keyword_list:
+        for page in range(1, 6):
+            get_data(keyword, page)
+            time.sleep(1)
+    # except Exception as e:
+    #     print(e)
