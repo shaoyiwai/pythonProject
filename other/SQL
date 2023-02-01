@@ -1,0 +1,105 @@
+# 插入单行数据
+import pymysql
+
+
+def get_conn():
+    # db:表示数据库名称
+    conn = pymysql.connect(host='localhost', port=3306, user='root', passwd='root', db='test1')
+    return conn
+
+
+def insert(sql):
+    conn = get_conn()
+    cur = conn.cursor()
+    result = cur.execute(sql)
+    print(result)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    # 插入语句
+    sql = 'INSERT INTO test_student_table VALUES(1,\'zhang\',12);'
+    insert(sql)
+
+#插入多行数据
+def insert_many(sql, args):
+    conn = get_conn()
+    cur = conn.cursor()
+    result = cur.executemany(query=sql, args=args)
+    print(result)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    #插入语句写法
+    sql = 'insert into test_student_table VALUES (%s,%s,%s)'
+    args = [(3, 'li', 11), (4, 'sun', 12), (5, 'zhao', 13)]
+    insert_many(sql=sql, args=args)
+
+#更新操作
+def update(sql,args):
+    conn = get_conn()
+    cur = conn.cursor()
+    result = cur.execute(sql,args)
+    print(result)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    sql = 'UPDATE test_student_table SET NAME=%s WHERE id = %s;'
+    args = ('zhangsan', 1)
+    update(sql, args)
+
+
+#删除操作
+def delete(sql,args):
+    conn = get_conn()
+    cur = conn.cursor()
+    result = cur.execute(sql,args)
+    print(result)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    #增加判断条件，与或非
+    sql = 'DELETE FROM test_student_table WHERE id = %s;'
+    args = (1,) # 单个元素的tuple写法
+    delete(sql,args)
+
+#查询操作
+def query(sql,args):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(sql,args)
+    results = cur.fetchall()
+    # 返回<class 'tuple'> tuple元组类型
+    print(type(results))
+
+    for row in results:
+        print(row)
+        id = row[0]
+        name = row[1]
+        age = row[2]
+        print('id: ' + str(id) + '  name: ' + name + '  age: ' + str(age))
+        pass
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+if __name__ == '__main__':
+    #查询语句
+    sql = 'SELECT  * FROM test_student_table;'
+    #sql = 'SELECT  * FROM test_student_table WHERE id=%s;'
+    #args=(1)
+    query(sql,None)
+
