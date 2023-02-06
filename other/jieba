@@ -1,0 +1,26 @@
+import jieba
+from matplotlib import colors
+from wordcloud import WordCloud
+import pandas as pd
+excel_file = r'C:\Users\qchd\Desktop\dts_prod_jd_外星人.xlsx'
+data = pd.read_excel(excel_file, index_col='title')
+print(data)
+info_str = str(data)
+# 生成词云图
+words = jieba.lcut(info_str)
+newtxt = ''.join(words)
+color_list = ['#40AA7F', '#2582B1', "#7180A8"]
+colormap = colors.ListedColormap(color_list)
+# wordcloud = WordCloud(font_path="msyh.ttf").generate(newtxt)
+wc = WordCloud(font_path="msyh.ttc",
+               max_words=500,
+               width=1000,
+               height=700,
+               background_color='white',
+               colormap=colormap
+               # max_words=100
+               )
+wc.generate(newtxt)
+wc.to_file('中文词云图.jpg')
+# print(type(info_str))
+# print(*info, sep='\n')
